@@ -1,0 +1,89 @@
+using System.Diagnostics;
+using System.Reflection.Metadata;
+using System.Text;
+//Baixar arquivos csv e incluir seu caminho nas variaveis produtos e categorias.
+// Criar uma pasta para salvar o novo arquivo e inserir seu caminho na variavel pastToSafe
+List <string> readArqv(string caminho)
+{  
+    var linhas = new List<string>();
+    string linha = string.Empty;
+    try
+    {
+        using (var sr = new StreamReader(caminho))
+        {
+            linha = sr.ReadLine();
+            while(linha != null )
+            {
+                linhas.Add( linha );
+                linha = sr.ReadLine();
+            }
+            sr.Close();
+        }
+    }
+    catch (Exception ex) { Console.WriteLine( ex.Message ); }
+    return linhas;
+}
+List<string> obterValores()
+{
+    List<string> list = new List<string>();
+    var produtos = readArqv(""); //inserir caminho de produtos.csv
+    var categorias = readArqv(""); //inserir caminho de categorias.csv
+    string numProduto = string.Empty;
+    string nomeProduto = string.Empty;
+    string idNumericoProduto = string.Empty;
+    string idNome = string.Empty;
+    foreach ( var lnproduto in produtos )
+    {
+         var produto = lnproduto.Split(',');
+         numProduto = produto[0].ToString();
+        nomeProduto = produto[1].ToString(); 
+       idNumericoProduto = produto[2].ToString();
+       foreach( var lncategoria in categorias )
+        {
+         var categoria = lncategoria.Split(',');
+            if (idNumericoProduto == categoria[0].ToString())
+            {
+                idNome = categoria[1].ToString();
+            }
+        }
+        list.Add($"{numProduto} ; {nomeProduto} ; {idNumericoProduto} ; {idNome}");
+    }
+    return list;
+    }
+void WriteArqv()
+{
+    var pastToSafe = ""; //Inserir caminho da pasta criada
+    var arquivo = "arquivo_criado.csv";
+    if (File.Exists($"{pastToSafe}\\{arquivo}"))
+    {
+        try
+        {
+            File.WriteAllText($"{pastToSafe}\\{arquivo}", string.Empty);
+            Console.WriteLine("Conteúdo do arquivo CSV foi excluído com sucesso.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Erro ao tentar excluir o conteúdo do arquivo CSV: " + ex.Message);
+        }
+    }
+    try
+    {
+        using (var sw = new StreamWriter($"{pastToSafe}\\{arquivo}", true))
+        {
+            List<string> listaClone = obterValores();
+            foreach (var linhaLista in listaClone)
+            {
+                sw.WriteLine(linhaLista);
+            }
+            sw.Close();
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = $"{pastToSafe}\\{arquivo}",
+                UseShellExecute = true
+            });
+        }
+        Console.WriteLine("Operação concluida com êxito");
+    }
+    catch (Exception ex) { Console.WriteLine(ex.Message); }
+}
+WriteArqv();
